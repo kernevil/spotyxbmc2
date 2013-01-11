@@ -42,6 +42,7 @@ using namespace std;
 class OMXPlayerAudio : public CThread
 {
 protected:
+  CCriticalSection      m_flushLock;
   CDVDMessageQueue      m_messageQueue;
   CDVDMessageQueue      &m_messageParent;
 
@@ -94,8 +95,6 @@ protected:
   virtual void OnStartup();
   virtual void OnExit();
   virtual void Process();
-
-  void HandlePlayspeed(bool bDropPacket);
 private:
 public:
   OMXPlayerAudio(OMXClock *av_clock, CDVDMessageQueue& parent);

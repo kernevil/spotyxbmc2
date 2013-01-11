@@ -32,6 +32,8 @@
 #include "settings/AdvancedSettings.h"
 #include "xbmc/guilib/GraphicContext.h"
 #include "settings/Settings.h"
+#include "utils/BitstreamConverter.h"
+
 
 #include <sys/time.h>
 #include <inttypes.h>
@@ -77,7 +79,6 @@ COMXVideo::COMXVideo()
   m_Pause             = false;
   m_extradata         = NULL;
   m_extrasize         = 0;
-  m_converter         = NULL;
   m_video_convert     = false;
   m_video_codec_name  = "";
   m_deinterlace       = false;
@@ -167,9 +168,6 @@ bool COMXVideo::Open(CDVDStreamInfo &hints, OMXClock *clock, bool deinterlace, b
     memcpy(m_extradata, hints.extradata, hints.extrasize);
   }
 
-  m_converter     = new CBitstreamConverter();
-  m_video_convert = m_converter->Open(hints.codec, (uint8_t *)hints.extradata, hints.extrasize, false);
-
   switch (hints.codec)
   {
     case CODEC_ID_H264:
@@ -212,14 +210,19 @@ bool COMXVideo::Open(CDVDStreamInfo &hints, OMXClock *clock, bool deinterlace, b
       /* check interlaced */
       if(m_extrasize > 9 && m_extradata[0] == 1)
       {
+        CBitstreamConverter converter;
+        converter.Open(hints.codec, (uint8_t *)hints.extradata, hints.extrasize, true);
+
         int32_t  max_ref_frames = 0;
         uint8_t  *spc = m_extradata + 6;
         uint32_t sps_size = BS_RB16(spc);
         bool     interlaced = true;
         if (sps_size)
-          m_converter->parseh264_sps(spc+3, sps_size-1, &interlaced, &max_ref_frames);
+          converter.parseh264_sps(spc+3, sps_size-1, &interlaced, &max_ref_frames);
         if(!interlaced && deinterlace)
           deinterlace = false;
+
+        converter.Close();
       }
     }
     break;
@@ -650,9 +653,6 @@ bool COMXVideo::Open(CDVDStreamInfo &hints, OMXClock *clock, bool deinterlace, b
 
 void COMXVideo::Close()
 {
-  if(!m_is_open)
-    return;
-
   m_omx_tunnel_decoder.Flush();
   if(m_deinterlace)
     m_omx_tunnel_image_fx.Flush();
@@ -667,11 +667,11 @@ void COMXVideo::Close()
 
   m_omx_decoder.FlushInput();
 
-  m_omx_sched.Deinitialize();
+  m_omx_sched.Deinitialize(true);
+  m_omx_decoder.Deinitialize(true);
   if(m_deinterlace)
-    m_omx_image_fx.Deinitialize();
-  m_omx_decoder.Deinitialize();
-  m_omx_render.Deinitialize();
+    m_omx_image_fx.Deinitialize(true);
+  m_omx_render.Deinitialize(true);
 
   m_is_open       = false;
 
@@ -680,9 +680,6 @@ void COMXVideo::Close()
   m_extradata = NULL;
   m_extrasize = 0;
 
-  if(m_converter)
-    delete m_converter;
-  m_converter         = NULL;
   m_video_convert     = false;
   m_video_codec_name  = "";
   m_deinterlace       = false;
@@ -744,17 +741,23 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
 
       if(m_av_clock->VideoStart())
       {
+        // only send dts on first frame to get nerly correct starttime
+        if(pts == DVD_NOPTS_VALUE)
+          pts = dts;
+        val  = (uint64_t)(pts == DVD_NOPTS_VALUE) ? 0 : pts;
+
         omx_buffer->nFlags = OMX_BUFFERFLAG_STARTTIME;
         CLog::Log(LOGDEBUG, "OMXVideo::Decode VDec : setStartTime %f\n", (float)val / DVD_TIME_BASE);
         m_av_clock->VideoStart(false);
+        omx_buffer->nTimeStamp = ToOMXTime(val);
       }
       else
       {
         if(pts == DVD_NOPTS_VALUE)
           omx_buffer->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN;
+        omx_buffer->nTimeStamp = ToOMXTime(val);
       }
 
-      omx_buffer->nTimeStamp = ToOMXTime(val);
 
       omx_buffer->nFilledLen = (demuxer_bytes > omx_buffer->nAllocLen) ? omx_buffer->nAllocLen : demuxer_bytes;
       memcpy(omx_buffer->pBuffer, demuxer_content, omx_buffer->nFilledLen);

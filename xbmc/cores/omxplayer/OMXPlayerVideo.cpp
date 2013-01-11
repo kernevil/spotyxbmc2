@@ -76,7 +76,6 @@ OMXPlayerVideo::OMXPlayerVideo(OMXClock *av_clock,
   m_open                  = false;
   m_stream_id             = -1;
   m_fFrameRate            = 25.0f;
-  m_flush                 = false;
   m_hdmi_clock_sync       = false;
   m_speed                 = DVD_PLAYSPEED_NORMAL;
   m_stalled               = false;
@@ -96,7 +95,7 @@ OMXPlayerVideo::OMXPlayerVideo(OMXClock *av_clock,
   m_autosync              = 1;
   m_fForcedAspectRatio    = 0.0f;
   m_send_eos              = false;
-  m_messageQueue.SetMaxDataSize(40 * 1024 * 1024);
+  m_messageQueue.SetMaxDataSize(10 * 1024 * 1024);
   m_messageQueue.SetMaxTimeSize(8.0);
 
   RESOLUTION res  = g_graphicsContext.GetVideoResolution();
@@ -121,7 +120,6 @@ bool OMXPlayerVideo::OpenStream(CDVDStreamInfo &hints)
 
   m_hints       = hints;
   m_Deinterlace = ( g_settings.m_currentVideoSettings.m_DeinterlaceMode == VS_DEINTERLACEMODE_OFF ) ? false : true;
-  m_flush       = false;
   m_hdmi_clock_sync = (g_guiSettings.GetInt("videoplayer.adjustrefreshrate") != ADJUST_REFRESHRATE_OFF);
   m_started     = false;
   m_stalled     = m_messageQueue.GetPacketCount(CDVDMsg::DEMUXER_PACKET) == 0;
@@ -170,8 +168,6 @@ bool OMXPlayerVideo::OpenStream(CDVDStreamInfo &hints, COMXVideo *codec)
 
 bool OMXPlayerVideo::CloseStream(bool bWaitForBuffers)
 {
-  m_flush   = true;
-
   // wait until buffers are empty
   if (bWaitForBuffers && m_speed > 0) m_messageQueue.WaitUntilEmpty();
 
@@ -615,12 +611,6 @@ void OMXPlayerVideo::Process()
 
       while (!m_bStop)
       {
-        if(m_flush)
-        {
-          m_flush = false;
-          break;
-        }
-
         if((int)m_omxVideo.GetFreeSpace() < pPacket->iSize)
         {
           Sleep(10);
@@ -640,29 +630,23 @@ void OMXPlayerVideo::Process()
         if (pPacket->dts == DVD_NOPTS_VALUE && pPacket->pts == DVD_NOPTS_VALUE)
           output_pts = pts;
         else if (pPacket->pts == DVD_NOPTS_VALUE)
-          output_pts = pPacket->dts;
+          output_pts = pts;
         else
           output_pts = pPacket->pts;
 
         if(pPacket->pts != DVD_NOPTS_VALUE)
           pPacket->pts += m_iVideoDelay;
 
-        if(output_pts != DVD_NOPTS_VALUE)
-          output_pts += m_iVideoDelay;
+        if(pPacket->dts != DVD_NOPTS_VALUE)
+          pPacket->dts += m_iVideoDelay;
 
         if(pPacket->duration == 0)
           pPacket->duration = frametime;
 
-        switch(m_hints.codec)
-        {
-          case CODEC_ID_MPEG1VIDEO:
-          case CODEC_ID_MPEG2VIDEO:
-            m_omxVideo.Decode(pPacket->pData, pPacket->iSize, pPacket->pts, pPacket->pts);
-            break;
-          default:
-            m_omxVideo.Decode(pPacket->pData, pPacket->iSize, output_pts, output_pts);
-            break;
-        }
+        if(output_pts != DVD_NOPTS_VALUE)
+          pts = output_pts;
+
+        m_omxVideo.Decode(pPacket->pData, pPacket->iSize, pPacket->dts, pPacket->pts);
 
         Output(pPacket->iGroupId, output_pts, bRequestDrop);
 
@@ -691,7 +675,6 @@ void OMXPlayerVideo::Process()
 
 void OMXPlayerVideo::Flush()
 {
-  m_flush = true;
   m_messageQueue.Flush();
   m_messageQueue.Put(new CDVDMsg(CDVDMsg::GENERAL_FLUSH), 1);
 }

@@ -18,6 +18,7 @@
  *
  */
 
+#include "network/Network.h"
 #include "GUISettings.h"
 #include <limits.h>
 #include <float.h>
@@ -545,8 +546,6 @@ void CGUISettings::Initialize()
 #endif
 #if defined(HAS_SDL_JOYSTICK)
   AddBool(in, "input.enablejoystick", 35100, true);
-  AddBool(in, "input.disablejoystickwithimon", 35101, true);
-  GetSetting("input.disablejoystickwithimon")->SetVisible(false);
 #endif
 
   CSettingsCategory* net = AddCategory(SETTINGS_SYSTEM, "network", 798);
@@ -958,7 +957,6 @@ void CGUISettings::Initialize()
   AddBool(pvrm, "pvrmenu.infotimeout", 19179, true);
   AddBool(pvrm, "pvrmenu.closechannelosdonswitch", 19229, false);
   AddInt(pvrm, "pvrmenu.infotime", 19184, 5, 1, 1, 10, SPIN_CONTROL_INT_PLUS, MASK_SECS);
-  AddBool(pvrm, "pvrmenu.hidevideolength", 19169, true);
   AddSeparator(pvrm, "pvrmenu.sep1");
   AddString(pvrm, "pvrmenu.iconpath", 19018, "", BUTTON_CONTROL_PATH_INPUT, false, 657);
   AddString(pvrm, "pvrmenu.searchicons", 19167, "", BUTTON_CONTROL_STANDARD);
@@ -1455,6 +1453,13 @@ void CGUISettings::LoadXML(TiXmlElement *pRootElement, bool hideSettings /* = fa
     g_langInfo.SetSubtitleLanguage(streamLanguage);
   else
     g_langInfo.SetSubtitleLanguage("");
+
+  // we no longer ship the built-in slideshow screensaver, replace it if it's still in use
+  if (GetString("screensaver.mode") == "screensaver.xbmc.builtin.slideshow")
+  {
+    SetString("screensaver.mode", "screensaver.xbmc.builtin.dim");
+    updated = true;
+  }
 
   if (updated)
     g_settings.Save();

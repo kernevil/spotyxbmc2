@@ -28,7 +28,6 @@
 #include <Python.h>
 
 #include "interfaces/legacy/LanguageHook.h"
-#include "threads/ThreadLocal.h"
 #include "threads/Event.h"
 
 #include <set>
@@ -51,7 +50,9 @@ namespace XBMCAddon
       CCriticalSection crit;
       std::set<AddonClass*> currentObjects;
 
-      static std::map<PyInterpreterState*,AddonClass::Ref<LanguageHook> > hooks;
+      // This constructor is only used to instantiate the global LanguageHook
+      inline LanguageHook() : 
+        XBMCAddon::LanguageHook("Python::LanguageHook(Global)"), m_interp(NULL)  {  }
 
     public:
 

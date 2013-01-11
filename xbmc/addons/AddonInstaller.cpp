@@ -41,6 +41,7 @@
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "URL.h"
+#include "pvr/PVRManager.h"
 
 using namespace std;
 using namespace XFILE;
@@ -359,6 +360,9 @@ void CAddonInstaller::UpdateRepos(bool force, bool wait)
     }
     return;
   }
+  // don't run repo update jobs while on the login screen which runs under the master profile
+  if((g_windowManager.GetActiveWindow() & WINDOW_ID_MASK) == WINDOW_LOGIN_SCREEN)
+    return;
   if (!force && m_repoUpdateWatch.IsRunning() && m_repoUpdateWatch.GetElapsedSeconds() < 600)
     return;
   m_repoUpdateWatch.StartZero();
@@ -557,6 +561,12 @@ bool CAddonInstallJob::OnPreInstall()
       service->Stop();
     return true;
   }
+
+  if (m_addon->Type() == ADDON_PVRDLL)
+  {
+    // stop the pvr manager, so running pvr add-ons are stopped and closed
+    PVR::CPVRManager::Get().Stop();
+  }
   return false;
 }
 
@@ -671,6 +681,12 @@ void CAddonInstallJob::OnPostInstall(bool reloadAddon)
     addons.push_back(m_addon);
     CJobManager::GetInstance().AddJob(new CRepositoryUpdateJob(addons), &CAddonInstaller::Get());
   }
+
+  if (m_addon->Type() == ADDON_PVRDLL)
+  {
+    // (re)start the pvr manager
+    PVR::CPVRManager::Get().Start(true);
+  }
 }
 
 void CAddonInstallJob::ReportInstallError(const CStdString& addonID,
@@ -725,6 +741,12 @@ CAddonUnInstallJob::CAddonUnInstallJob(const AddonPtr &addon)
 
 bool CAddonUnInstallJob::DoWork()
 {
+  if (m_addon->Type() == ADDON_PVRDLL)
+  {
+    // stop the pvr manager, so running pvr add-ons are stopped and closed
+    PVR::CPVRManager::Get().Stop();
+  }
+
   if (!CAddonInstallJob::DeleteAddon(m_addon->Path()))
     return false;
 
@@ -756,4 +778,10 @@ void CAddonUnInstallJob::OnPostUnInstall()
 
   if (bSave)
     CFavourites::Save(items);
+
+  if (m_addon->Type() == ADDON_PVRDLL)
+  {
+    if (g_guiSettings.GetBool("pvrmanager.enabled"))
+      PVR::CPVRManager::Get().Start(true);
+  }
 }
