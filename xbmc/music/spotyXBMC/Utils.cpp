@@ -217,7 +217,7 @@ namespace addon_music_spotify {
    void Utils::updateSearchResults(string query) {
      //we need to replace the whitespaces with %20
 
-     int pos = 0;
+     unsigned int pos = 0;
      while (pos != string::npos) {
        pos = query.find(' ');
        if (pos != string::npos) {

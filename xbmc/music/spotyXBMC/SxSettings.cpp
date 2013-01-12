@@ -162,7 +162,7 @@ namespace addon_music_spotify {
     };
 
     int mask = 0;
-    for (int i = 0; i < sizeof(radiogenres) / sizeof(radiogenres[0]); i++)
+    for (unsigned int i = 0; i < sizeof(radiogenres) / sizeof(radiogenres[0]); i++)
       if (radiogenres[i].enable) mask |= radiogenres[i].id;
 
     return (sp_radio_genre) mask;

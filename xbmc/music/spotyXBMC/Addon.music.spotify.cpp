@@ -61,8 +61,9 @@ Addon_music_spotify::~Addon_music_spotify() {
 bool Addon_music_spotify::enable(bool enable) {
 	if (enable)
 		return Session::getInstance()->enable();
-	else
-		Session::getInstance()->deInit();
+
+	Session::getInstance()->deInit();
+	return false;
 }
 
 bool Addon_music_spotify::isReady() {
@@ -168,7 +169,7 @@ bool Addon_music_spotify::getArtistAlbums(CFileItemList& items,
 
 	//add the albums
 	vector<SxAlbum*> albums = artist->getAlbums();
-	for (int i = 0; i < albums.size(); i++) {
+	for (unsigned int i = 0; i < albums.size(); i++) {
 		items.Add(Utils::SxAlbumToItem(albums[i]));
 	}
 	return true;
@@ -293,7 +294,7 @@ bool Addon_music_spotify::getAlbumTracksFromTrack(CFileItemList& items,
 					Session::getInstance()->processEvents();
 				}
 				vector<SxTrack*> tracks = album->getTracks();
-				for (int i = 0; i < tracks.size(); i++) {
+				for (unsigned int i = 0; i < tracks.size(); i++) {
 					items.Add(Utils::SxTrackToItem(tracks[i]));
 				}
 			}
@@ -319,7 +320,7 @@ bool Addon_music_spotify::getAlbumTracks(CFileItemList& items,
 		sp_album *spAlbum = sp_link_as_album(spLink);
 		SxAlbum* salbum = AlbumStore::getInstance()->getAlbum(spAlbum, true);
 		vector<SxTrack*> tracks = salbum->getTracks();
-		for (int i = 0; i < tracks.size(); i++) {
+		for (unsigned int i = 0; i < tracks.size(); i++) {
 			if (disc == tracks[i]->getDisc())
 				items.Add(Utils::SxTrackToItem(tracks[i]));
 		}
@@ -346,7 +347,7 @@ bool Addon_music_spotify::getArtistTracks(CFileItemList& items,
 		while (!artist->isTracksLoaded())
 			;
 		vector<SxTrack*> tracks = artist->getTracks();
-		for (int i = 0; i < tracks.size(); i++) {
+		for (unsigned int i = 0; i < tracks.size(); i++) {
 			items.Add(Utils::SxTrackToItem(tracks[i]));
 		}
 	}
@@ -382,7 +383,7 @@ bool Addon_music_spotify::getRadioTracks(CFileItemList& items, int radio) {
 				radio);
 		if (radio == 1 || radio == 2) {
 			vector<SxTrack*> tracks = RadioHandler::getInstance()->getTracks(radio);
-			for (int i = 0; i < tracks.size(); i++) {
+			for (unsigned int i = 0; i < tracks.size(); i++) {
 				const CFileItemPtr pItem = Utils::SxTrackToItem(tracks[i], "",
 						i + lowestTrackNumber + 1);
 				CStdString path;
@@ -447,7 +448,7 @@ bool Addon_music_spotify::getArtistSimilarArtists(CFileItemList& items,
 		while (!artist->isTracksLoaded())
 			;
 		vector<SxArtist*> artists = artist->getArtists();
-		for (int i = 0; i < artists.size(); i++) {
+		for (unsigned int i = 0; i < artists.size(); i++) {
 			items.Add(Utils::SxArtistToItem(artists[i]));
 		}
 	}
@@ -668,7 +669,7 @@ bool Addon_music_spotify::getTopListArtists(CFileItemList& items) {
 		}
 
 		vector<SxArtist*> artists = tl->getArtists();
-		for (int i = 0; i < artists.size(); i++) {
+		for (unsigned int i = 0; i < artists.size(); i++) {
 			items.Add(Utils::SxArtistToItem(artists[i]));
 		}
 
@@ -690,7 +691,7 @@ bool Addon_music_spotify::getTopListAlbums(CFileItemList& items) {
 		}
 
 		vector<SxAlbum*> albums = tl->getAlbums();
-		for (int i = 0; i < albums.size(); i++) {
+		for (unsigned int i = 0; i < albums.size(); i++) {
 			items.Add(Utils::SxAlbumToItem(albums[i]));
 		}
 	}
@@ -711,7 +712,7 @@ bool Addon_music_spotify::getTopListTracks(CFileItemList& items) {
 		}
 
 		vector<SxTrack*> tracks = tl->getTracks();
-		for (int i = 0; i < tracks.size(); i++) {
+		for (unsigned int i = 0; i < tracks.size(); i++) {
 			items.Add(Utils::SxTrackToItem(tracks[i], "", i + 1));
 		}
 	}
@@ -727,7 +728,7 @@ bool Addon_music_spotify::Search(CStdString query, CFileItemList& items) {
 			albumPrefix.Format("[%s] ", g_localizeStrings.Get(558).c_str());
 			Logger::printOut("search fetch albums");
 			vector<SxAlbum*> albums = SearchHandler::getInstance()->getAlbumResults();
-			for (int i = 0; i < albums.size(); i++) {
+			for (unsigned int i = 0; i < albums.size(); i++) {
 				//if its a multidisc we need to add them all
 				int discNumber = albums[i]->getNumberOfDiscs();
 				if (discNumber == 1) {
@@ -741,7 +742,7 @@ bool Addon_music_spotify::Search(CStdString query, CFileItemList& items) {
 			}
 			Logger::printOut("search fetch tracks");
 			vector<SxTrack*> tracks = SearchHandler::getInstance()->getTrackResults();
-			for (int i = 0; i < tracks.size(); i++)
+			for (unsigned int i = 0; i < tracks.size(); i++)
 				items.Add(Utils::SxTrackToItem(tracks[i]));
 
 			CStdString artistPrefix;
@@ -750,7 +751,7 @@ bool Addon_music_spotify::Search(CStdString query, CFileItemList& items) {
 			Logger::printOut("search fetch artists");
 			vector<SxArtist*> artists =
 					SearchHandler::getInstance()->getArtistResults();
-			for (int i = 0; i < artists.size(); i++)
+			for (unsigned int i = 0; i < artists.size(); i++)
 				items.Add(Utils::SxArtistToItem(artists[i], artistPrefix));
 		}
 	}
