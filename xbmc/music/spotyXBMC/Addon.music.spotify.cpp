@@ -1,6 +1,7 @@
 /*
  spotyxbmc2 - A project to integrate Spotify into XBMC
  Copyright (C) 2011  David Erenger
+               2013  Samuel Cabrero <samuelcabrero@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -754,9 +755,5 @@ bool Addon_music_spotify::Search(CStdString query, CFileItemList& items) {
 		}
 	}
 	return true;
-}
-
-ICodec* Addon_music_spotify::GetCodec() {
-	return (ICodec*) PlayerHandler::getInstance()->getCodec();
 }
 

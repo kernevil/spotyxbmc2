@@ -1,6 +1,7 @@
 /*
  spotyxbmc2 - A project to integrate Spotify into XBMC
  Copyright (C) 2011  David Erenger
+               2013  Samuel Cabrero <samuelcabrero@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,39 +23,31 @@
 #ifndef PLAYERHANDLER_H_
 #define PLAYERHANDLER_H_
 
-#include <string>
 #include <libspotify/api.h>
 
 using namespace std;
 
 namespace addon_music_spotify {
 
-  class Codec;
-  class PlayerHandler {
-  public:
+class ISpotifyPlayer;
+class PlayerHandler {
+public:
+	static PlayerHandler *getInstance();
+	static void deInit();
 
-    static PlayerHandler *getInstance();
-    static void deInit();
+	void attachPlayer(ISpotifyPlayer *player);
+	void detachPlayer(ISpotifyPlayer *player);
+	static ISpotifyPlayer *getPlayer();
 
-    void removeCodec();
+	static int SP_CALLCONV cb_musicDelivery(sp_session *session,
+			const sp_audioformat *format, const void *frames, int num_frames);static void SP_CALLCONV cb_endOfTrack(sp_session *session);
 
-    Codec* getCodec();
-    Codec* getCurrentCodec() {
-      return m_currentCodec;
-    }
-
-    static int SP_CALLCONV cb_musicDelivery(sp_session *session, const sp_audioformat *format, const void *frames, int num_frames);
-    static void SP_CALLCONV cb_endOfTrack(sp_session *session);
-
-  private:
-    PlayerHandler();
-    virtual ~PlayerHandler();
-    static PlayerHandler *m_instance;
-
-    Codec* m_currentCodec;
-    Codec* m_preloadingCodec;
-
-  };
+private:
+	PlayerHandler();
+	virtual ~PlayerHandler();
+	static PlayerHandler *m_instance;
+	static ISpotifyPlayer *m_player;
+};
 
 } /* namespace addon_music_spotify */
 #endif /* PLAYERHANDLER_H_ */

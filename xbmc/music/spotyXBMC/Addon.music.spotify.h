@@ -1,6 +1,7 @@
 /*
  spotyxbmc2 - A project to integrate Spotify into XBMC
  Copyright (C) 2011  David Erenger
+               2013  Samuel Cabrero <samuelcabrero@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -59,7 +60,6 @@ public:
   bool ToggleStarAlbum(CFileItemPtr& item);
 
   bool Search(CStdString query, CFileItemList& items);
-  ICodec* GetCodec();
 
 private:
   bool m_isEnabled;

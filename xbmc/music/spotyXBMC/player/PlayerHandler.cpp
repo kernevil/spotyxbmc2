@@ -1,6 +1,7 @@
 /*
  spotyxbmc2 - A project to integrate Spotify into XBMC
  Copyright (C) 2011  David Erenger
+               2013  Samuel Cabrero <samuelcabrero@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,62 +21,58 @@
  */
 
 #include "PlayerHandler.h"
-#include "Codec.h"
+#include "ISpotifyPlayer.h"
 #include "../session/Session.h"
 
 namespace addon_music_spotify {
 
-  PlayerHandler::PlayerHandler() {
-    m_currentCodec = NULL;
-    m_preloadingCodec = NULL;
-  }
-
-  PlayerHandler* PlayerHandler::m_instance = 0;
-  PlayerHandler *PlayerHandler::getInstance() {
-    return m_instance ? m_instance : (m_instance = new PlayerHandler);
-  }
-
-  void PlayerHandler::deInit() {
-    if (m_instance == NULL)
-      return;
-    if (m_instance->m_currentCodec != NULL)
-      m_instance->m_currentCodec->unloadPlayer();
-    //The codec is probably deleted by xbmc on exit
-    //  delete m_currentCodec();
-  }
-
-  Codec *PlayerHandler::getCodec() {
-    //do some checks if it is a spotify track and if its loaded and so on
-    if (m_currentCodec == NULL) {
-      //start with a init flag
-      m_currentCodec = new Codec();
-      return m_currentCodec;
-    }
-    return NULL;
-    //}
-    //if there is an other preloading track, remove it
-    //if (m_preloadingCodec)
-    //  delete m_preloadingCodec;
-    //start with a preload flag
-    //m_preloadingCodec = new Codec();
-    //return m_preloadingCodec;
-  }
-
-  PlayerHandler::~PlayerHandler() {
-  }
-
-  void PlayerHandler::removeCodec() {
-    m_currentCodec = NULL;
-  }
-
-  int PlayerHandler::cb_musicDelivery(sp_session *session,
-      const sp_audioformat *format, const void *frames, int num_frames) {
-    return m_instance->getCurrentCodec()->musicDelivery(format->channels,
-        format->sample_rate, frames, num_frames);
-  }
-
-  void PlayerHandler::cb_endOfTrack(sp_session *session) {
-    m_instance->getCurrentCodec()->endOfTrack();
-  }
+PlayerHandler* PlayerHandler::m_instance = 0;
+ISpotifyPlayer* PlayerHandler::m_player = 0;
+PlayerHandler *PlayerHandler::getInstance() {
+	return m_instance ? m_instance : (m_instance = new PlayerHandler());
 }
-/* namespace addon_music_spotify */
+ISpotifyPlayer* PlayerHandler::getPlayer() {
+	return m_player;
+}
+
+PlayerHandler::PlayerHandler() {
+	m_instance = 0;
+}
+
+PlayerHandler::~PlayerHandler() {
+	if (!m_instance)
+		return;
+	m_instance->detachPlayer(m_player);
+}
+
+void PlayerHandler::deInit() {
+	if (!m_instance)
+		return;
+	m_instance->detachPlayer(m_player);
+}
+
+int PlayerHandler::cb_musicDelivery(sp_session *session,
+		const sp_audioformat *format, const void *frames, int num_frames) {
+	if (m_instance) {
+		ISpotifyPlayer *player = m_instance->getPlayer();
+		if (player)
+			return player->sp_musicDelivery(format, frames, num_frames);
+	}
+	return 0;
+}
+
+void PlayerHandler::cb_endOfTrack(sp_session *session) {
+	if (m_instance) {
+		ISpotifyPlayer *player = m_instance->getPlayer();
+		if (player)
+			player->sp_endOfTrack();
+	}
+}
+
+void PlayerHandler::attachPlayer(ISpotifyPlayer *player) {
+	m_player = player;
+}
+void PlayerHandler::detachPlayer(ISpotifyPlayer *player) {
+	m_player = 0;
+}
+}/* namespace addon_music_spotify */

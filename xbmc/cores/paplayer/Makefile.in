@@ -25,6 +25,7 @@ SRCS += TimidityCodec.cpp
 SRCS += VGMCodec.cpp
 SRCS += WAVcodec.cpp
 SRCS += YMCodec.cpp
+SRCS += SpotifyCodec.cpp
 
 ifeq (@USE_ASAP_CODEC@,1)
 SRCS += ASAPCodec.cpp

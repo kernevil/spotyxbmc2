@@ -41,8 +41,7 @@
 #include "URL.h"
 #include "DVDPlayerCodec.h"
 #include "PCMCodec.h"
-
-#include "../../music/spotyXBMC/Addon.music.spotify.h"
+#include "SpotifyCodec.h"
 
 ICodec* CodecFactory::CreateCodec(const CStdString& strFileType)
 {
@@ -114,7 +113,7 @@ ICodec* CodecFactory::CreateCodec(const CStdString& strFileType)
   //spotify
   //TODO see if any addon has the ability to play the format.... now hardcode spotify
   else if (strFileType.Left(7).Equals("spotify"))
-    return g_spotify->GetCodec();
+    return new SpotifyCodec();
 
   return NULL;
 }

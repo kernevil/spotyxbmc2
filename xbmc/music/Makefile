@@ -23,8 +23,6 @@ SRCS=Album.cpp \
      spotyXBMC/search/Search.cpp \
      spotyXBMC/search/SearchHandler.cpp \
      spotyXBMC/search/SearchResultBackgroundLoader.cpp \
-     spotyXBMC/player/Codec.cpp \
-     spotyXBMC/player/PlayerHandler.cpp \
      spotyXBMC/playlist/TopLists.cpp \
      spotyXBMC/playlist/SxPlaylist.cpp \
      spotyXBMC/playlist/StarredList.cpp \
@@ -37,7 +35,9 @@ SRCS=Album.cpp \
      spotyXBMC/thumb/ThumbStore.cpp \
      spotyXBMC/track/SxTrack.cpp \
      spotyXBMC/track/TrackStore.cpp \
-     spotyXBMC/track/TrackContainer.cpp
+     spotyXBMC/track/TrackContainer.cpp \
+     spotyXBMC/player/PlayerHandler.cpp \
+     spotyXBMC/player/ISpotifyPlayer.cpp
 
 LIB=music.a
 
