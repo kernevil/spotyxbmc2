@@ -58,7 +58,7 @@ typedef uint64_t sp_uint64;
 typedef unsigned char bool;
 #endif
 
-typedef unsigned char byte;
+typedef unsigned char s_byte;
 
 /**
  * @defgroup types Spotify types & structs
@@ -313,14 +313,14 @@ typedef struct sp_offline_sync_status {
 	 */
 	int queued_tracks;
 	sp_uint64 queued_bytes;
-	
+
 	/**
 	 * Done tracks/bytes is things marked for sync that existed on
 	 * device before current sync operation
 	 */
 	int done_tracks;
 	sp_uint64 done_bytes;
-	
+
 	/**
 	 * Copied tracks/bytes is things that has been copied in
 	 * current sync operation
@@ -597,7 +597,7 @@ typedef struct sp_session_config {
 	bool dont_save_metadata_for_playlists;
 
 	/**
-	 * Avoid loading playlists into RAM on startup. 
+	 * Avoid loading playlists into RAM on startup.
 	 * See sp_playlist_is_in_ram() for more details.
 	 */
 	bool initially_unload_playlists;
@@ -773,7 +773,7 @@ SP_LIBEXPORT(void) sp_session_process_events(sp_session *session, int *next_time
  *                         SP_ERROR_MISSING_CALLBACK
  *                         SP_ERROR_RESOURCE_NOT_LOADED
  *                         SP_ERROR_TRACK_NOT_PLAYABLE
- * 
+ *
  */
 SP_LIBEXPORT(sp_error) sp_session_player_load(sp_session *session, sp_track *track);
 
@@ -871,7 +871,7 @@ SP_LIBEXPORT(sp_playlist *) sp_session_starred_for_user_create(sp_session *sessi
  * Return the published container for a given @a canonical_username,
  * or the currently logged in user if @a canonical_username is NULL.
  *
- * When done with the list you should call sp_playlistconatiner_release() to 
+ * When done with the list you should call sp_playlistconatiner_release() to
  * decrese the reference you own by having created it.
  *
  * @param[in]   session    Your session object.
@@ -907,7 +907,7 @@ SP_LIBEXPORT(void) sp_session_preferred_offline_bitrate(sp_session *session, sp_
  * Return status of volume normalization
  *
  * @param[in]  session        Session object
- * 
+ *
  * @return true iff volume normalization is enabled
  *
  */
@@ -1028,7 +1028,7 @@ typedef enum {
 	SP_LINKTYPE_PLAYLIST = 5, ///< Link type is playlist
 	SP_LINKTYPE_PROFILE  = 6, ///< Link type is profile
 	SP_LINKTYPE_STARRED  = 7, ///< Link type is starred
-	SP_LINKTYPE_LOCALTRACK  = 8, ///< Link type is a local file	
+	SP_LINKTYPE_LOCALTRACK  = 8, ///< Link type is a local file
 	SP_LINKTYPE_IMAGE = 9, ///< Link type is an image
 } sp_linktype;
 
@@ -1569,7 +1569,7 @@ SP_LIBEXPORT(sp_artist *) sp_album_artist(sp_album *album);
  *
  * @see sp_image_create
  */
-SP_LIBEXPORT(const byte *) sp_album_cover(sp_album *album);
+SP_LIBEXPORT(const s_byte *) sp_album_cover(sp_album *album);
 
 /**
  * Return name of album
@@ -1656,7 +1656,7 @@ SP_LIBEXPORT(bool) sp_artist_is_loaded(sp_artist *artist);
  *                         loaded yet, this function returns NULL.
  *
  */
-SP_LIBEXPORT(const byte *) sp_artist_portrait(sp_artist *artist);
+SP_LIBEXPORT(const s_byte *) sp_artist_portrait(sp_artist *artist);
 
 /**
  * Increase the reference count of a artist
@@ -1925,7 +1925,7 @@ SP_LIBEXPORT(int) sp_artistbrowse_num_portraits(sp_artistbrowse *arb);
  *
  * @see sp_image_create
  */
-SP_LIBEXPORT(const byte *) sp_artistbrowse_portrait(sp_artistbrowse *arb, int index);
+SP_LIBEXPORT(const s_byte *) sp_artistbrowse_portrait(sp_artistbrowse *arb, int index);
 
 /**
  * Given an artist browse object, return number of tracks
@@ -2062,7 +2062,7 @@ typedef void SP_CALLCONV image_loaded_cb(sp_image *image, void *userdata);
  * @see sp_album_cover
  * @see sp_artistbrowse_portrait
  */
-SP_LIBEXPORT(sp_image *) sp_image_create(sp_session *session, const byte image_id[20]);
+SP_LIBEXPORT(sp_image *) sp_image_create(sp_session *session, const s_byte image_id[20]);
 
 /**
  * Create an image object from a link
@@ -2152,7 +2152,7 @@ SP_LIBEXPORT(const void *) sp_image_data(sp_image *image, size_t *data_size);
  *
  * @return                Image ID
  */
-SP_LIBEXPORT(const byte *) sp_image_image_id(sp_image *image);
+SP_LIBEXPORT(const s_byte *) sp_image_image_id(sp_image *image);
 
 
 /**
@@ -2531,7 +2531,7 @@ typedef struct sp_playlist_callbacks {
 	 * @param[in]  image      New image
 	 * @param[in]  userdata   Userdata passed to sp_playlist_add_callbacks()
 	 */
-	void (SP_CALLCONV *image_changed)(sp_playlist *pl, const byte *image, void *userdata);
+	void (SP_CALLCONV *image_changed)(sp_playlist *pl, const s_byte *image, void *userdata);
 
 
 	/**
@@ -2757,7 +2757,7 @@ SP_LIBEXPORT(const char *) sp_playlist_get_description(sp_playlist *playlist);
  * @return                    TRUE if playlist has an image, FALSE if not
  *
  */
-SP_LIBEXPORT(bool) sp_playlist_get_image(sp_playlist *playlist, byte image[20]);
+SP_LIBEXPORT(bool) sp_playlist_get_image(sp_playlist *playlist, s_byte image[20]);
 
 
 /**
@@ -3204,7 +3204,7 @@ SP_LIBEXPORT(sp_error) sp_playlistcontainer_add_folder(sp_playlistcontainer *pc,
  * Return a pointer to the user object of the owner.
  *
  * @param[in]  pc   Playlist container.
- * @return          The user object or NULL if unknown or none.     
+ * @return          The user object or NULL if unknown or none.
  */
 SP_LIBEXPORT(sp_user *) sp_playlistcontainer_owner(sp_playlistcontainer *pc);
 
@@ -3489,7 +3489,7 @@ SP_LIBEXPORT(int) sp_toplistbrowse_backend_request_duration(sp_toplistbrowse *tl
 typedef void SP_CALLCONV inboxpost_complete_cb(sp_inbox *result, void *userdata);
 
 /**
- * Add to inbox 
+ * Add to inbox
  *
  * @param[in]  session    Session object
  * @param[in]  user       Canonical username of recipient
