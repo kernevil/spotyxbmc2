@@ -28,6 +28,7 @@
 #include "DVDInputStreamPVRManager.h"
 #include "DVDInputStreamTV.h"
 #include "DVDInputStreamRTMP.h"
+#include "DVDInputStreamSpotify.h"
 #ifdef HAVE_LIBBLURAY
 #include "DVDInputStreamBluray.h"
 #endif
@@ -113,6 +114,9 @@ CDVDInputStream* CDVDFactoryInputStream::CreateInputStream(IDVDPlayer* pPlayer, 
   else if(file.substr(0, 7) == "htsp://")
     return new CDVDInputStreamHTSP();
 #endif
+  if (item.IsSpotify()){
+	  return new CDVDInputStreamSpotify();
+  }
 
   // our file interface handles all these types of streams
   return (new CDVDInputStreamFile());
