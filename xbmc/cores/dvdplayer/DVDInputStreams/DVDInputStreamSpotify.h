@@ -21,7 +21,7 @@
 #include "DVDInputStream.h"
 #include "utils/RingBuffer.h"
 #include "music/spotyXBMC/player/ISpotifyPlayer.h"
-#include </usr/local/include/libspotify/api.h>
+#include <libspotify/api.h>
 
 using namespace addon_music_spotify;
 class CDVDInputStreamSpotify: public CDVDInputStream,
